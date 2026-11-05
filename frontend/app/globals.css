@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/newsreader";
+
+/*
+  Visual idea: an editor's desk. The UI is cool blue-grey paper and navy ink;
+  anything the agent wrote is set in a serif, like a document; a highlighter
+  marks strong matches and the words the agent added, and a red pen marks gaps.
+*/
+@theme {
+  --color-paper: #e9edf1;
+  --color-sheet: #fbfcfd;
+  --color-ink: #14213d;
+  --color-graphite: #5b6676;
+  --color-rule: #cfd6de;
+  --color-marker: #ffd84d;
+  --color-marker-soft: #fff1b3;
+  --color-redpen: #c2362f;
+
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader Variable", ui-serif, Georgia, serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Highlighter stroke: slightly ragged, sits behind the text like real marker */
+.highlight {
+  background: linear-gradient(
+    to bottom,
+    transparent 38%,
+    var(--color-marker) 38%,
+    var(--color-marker) 92%,
+    transparent 92%
+  );
+  padding: 0 0.1em;
+  margin: 0 -0.1em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Partial matches: diagonal hatching in marker yellow */
+.hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-marker) 0 3px,
+    transparent 3px 7px
+  );
+}
+
+/* The one orchestrated moment: requirement strip segments draw in on load */
+@keyframes draw-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.draw-in {
+  transform-origin: left;
+  animation: draw-in 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-in {
+    animation: none;
+  }
+}

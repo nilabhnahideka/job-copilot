@@ -2,9 +2,13 @@
 
 An AI agent that reads a job posting, compares it to your resume, and drafts a tailored application: a **fit score with gap analysis**, **rewritten resume bullets**, a **cover letter** and a **recruiter message**. It **fact-checks its own rewrites** so it never invents experience, and it **waits for your review** before anything is final.
 
-Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI** and **SQLite**, with tests, evals, Docker and CI.
+Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI**, **SQLite** and **Next.js**, with tests, evals, Docker and CI.
 
-> Status: backend v0.1 ✅ · Next.js frontend 🚧 · deployment 🚧
+> Status: backend ✅ · web app ✅ · deployment 🚧
+
+![Application page](docs/screenshot-application.png)
+
+The bar under the score is the score's breakdown: one segment per job requirement (must-haves are wider), filled when your resume covers it, hatched when it partly does, dashed red when it's missing. In the rewritten bullets, the highlighted words are the ones the agent added.
 
 ---
 
@@ -31,6 +35,15 @@ Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI** and **SQLite**,
 
 ## Quickstart
 
+**Everything with Docker:**
+
+```bash
+cp backend/.env.example backend/.env   # add your OPENAI_API_KEY
+docker compose up --build              # web: http://localhost:3000  API: http://localhost:8000/docs
+```
+
+**Or run each part locally.** Backend:
+
 ```bash
 cd backend
 python -m venv .venv && source .venv/bin/activate
@@ -39,7 +52,15 @@ cp .env.example .env          # add your OPENAI_API_KEY
 uvicorn app.main:app --reload
 ```
 
-Open http://localhost:8000/docs for interactive API docs.
+Frontend (in a second terminal):
+
+```bash
+cd frontend
+cp .env.example .env.local
+npm install && npm run dev    # http://localhost:3000
+```
+
+Open http://localhost:8000/docs for interactive API docs. Using the API directly:
 
 ```bash
 # 1. upload resume (PDF or text)
@@ -58,12 +79,6 @@ curl -X POST localhost:8000/api/applications/1/review -d '{"action":"approve"}' 
 curl -X PATCH localhost:8000/api/applications/1 -H 'content-type: application/json' -d '{"status":"applied"}'
 ```
 
-Or with Docker:
-
-```bash
-cd backend && docker build -t job-copilot . && docker run -p 8000:8000 --env-file .env job-copilot
-```
-
 ## API
 
 | Method | Path | |
@@ -71,6 +86,7 @@ cd backend && docker build -t job-copilot . && docker run -p 8000:8000 --env-fil
 | `POST` | `/api/resumes` | Upload PDF/TXT (`file`) or `text`; parsed into a structured profile |
 | `GET` | `/api/resumes` | List resumes |
 | `POST` | `/api/applications` | Run the agent on a job post |
+| `POST` | `/api/applications/stream` | Same, streamed as server-sent events (one per finished node) |
 | `POST` | `/api/applications/{id}/review` | `{"action": "approve"}` or `{"action": "revise", "target": "bullets"\|"cover_letter"\|"outreach", "feedback": "..."}` |
 | `GET` | `/api/applications[?status=]` | Tracker list |
 | `GET / PATCH / DELETE` | `/api/applications/{id}` | Details, update status/notes, delete |
@@ -79,11 +95,11 @@ cd backend && docker build -t job-copilot . && docker run -p 8000:8000 --env-fil
 ## Testing & evaluation
 
 ```bash
-pytest -q                  # 16 offline tests: scoring, graph paths, grounding loop, HITL, API
+pytest -q                  # 17 offline tests: scoring, graph paths, grounding loop, HITL, API
 python -m evals.run_evals  # real-LLM eval on a golden set (needs OPENAI_API_KEY)
 ```
 
-The eval suite checks each case for: verdict in the expected range, expected gaps surfaced, rewrites grounded in real bullets, and no technologies invented. CI runs lint + tests + Docker build on every push, plus evals when the `OPENAI_API_KEY` secret is set.
+The eval suite checks each case for: verdict in the expected range, expected gaps surfaced, rewrites grounded in real bullets, and no technologies invented. CI runs backend lint + tests + Docker build and frontend lint + build on every push, plus evals when the `OPENAI_API_KEY` secret is set.
 
 **Tracing:** set `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` in `.env`, and every graph run appears in LangSmith with per-node latency and token cost.
 
@@ -99,12 +115,18 @@ backend/
     schemas.py    Pydantic models = LLM structured outputs
   tests/          offline tests with FakeLLM
   evals/          golden cases + eval runner
+frontend/
+  app/            Next.js routes: board, resume, new, applications/[id]
+  components/     RequirementStrip, ApplicationView, UI bits
+  lib/            typed API client + SSE reader, word diff
+docker-compose.yml
 ```
 
 ## Roadmap
 
-- [ ] Next.js frontend: upload, side-by-side diff of bullets, inline editing, kanban tracker
-- [ ] Streaming progress (SSE) per graph node
+- [x] Next.js frontend: resume upload, bullet diff, review/revise, application board
+- [x] Streaming progress (SSE) per graph node
+- [ ] Edit drafts inline before approving
 - [ ] Fetch job posts from a URL
 - [ ] Deploy (Render/Railway + Vercel) with Postgres
 - [ ] Export tailored resume as PDF/DOCX
