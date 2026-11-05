@@ -10,6 +10,8 @@ _UNTRUSTED = (
 
 PARSE_RESUME = f"""You convert raw resume text into structured JSON.
 Copy bullets verbatim (fix only obvious PDF-extraction artifacts like broken hyphenation).
+Copy contact details exactly as written: email, phone, location, and LinkedIn / GitHub /
+portfolio links (add "https://" if the link has no scheme).
 Do not invent skills, dates or employers. Leave fields empty if not present.
 {_UNTRUSTED}"""
 

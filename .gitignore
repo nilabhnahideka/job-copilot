@@ -11,3 +11,4 @@ evals/last_results.json
 node_modules/
 .next/
 .DS_Store
+*.egg-info/

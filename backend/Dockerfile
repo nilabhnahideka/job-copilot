@@ -7,6 +7,8 @@ COPY pyproject.toml ./
 RUN pip install --upgrade pip && pip install .
 
 COPY app ./app
+COPY alembic.ini ./
+COPY migrations ./migrations
 
 RUN useradd -m appuser && mkdir -p /app/data && chown -R appuser /app
 USER appuser

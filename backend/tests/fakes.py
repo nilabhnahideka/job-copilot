@@ -32,6 +32,10 @@ BULLET_3 = "Automated weekly reporting with Python and SQL, saving 6 hours per w
 RESUME = ResumeProfile(
     name="Asha Verma",
     headline="Software Engineer",
+    email="asha.verma@example.com",
+    phone="+91 98765 43210",
+    location="Pune, Maharashtra",
+    linkedin_url="https://linkedin.com/in/ashaverma",
     skills=["Python", "FastAPI", "LangChain", "SQL", "Docker"],
     experience=[Experience(title="Software Engineer", company="Acme", bullets=[BULLET_2, BULLET_3])],
     projects=[Project(name="DocBot", tech=["LangChain", "FAISS"], bullets=[BULLET_1])],
@@ -140,3 +144,25 @@ def hallucinate_then_fix():
         return GroundingReport()
 
     return {TailoredBullets: tailor, GroundingReport: ground}
+
+
+def make_pdf(text: str) -> bytes:
+    """A minimal but valid one-page PDF containing `text`, for upload tests."""
+    stream = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode()
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+        b"/Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+        b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out, offsets = b"%PDF-1.4\n", []
+    for i, obj in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += f"{i} 0 obj\n".encode() + obj + b"\nendobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
+    out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
+    out += f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    return out

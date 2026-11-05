@@ -52,8 +52,38 @@ Streamlit is faster to build but looks like a demo. A separate API and website l
 
 An analysis takes 20–40 seconds, and showing each step makes the wait understandable. SSE is one-way (server to browser), which is all we need, and it's simpler than WebSockets.
 
-### 9. Free hosting on Render, with data in an external Postgres (planned)
+### 9. Free hosting on Render, with data in an external Postgres
 
-**Chose:** host on Render's free plan. **Considered:** Railway, Fly.io, Vercel + serverless.
+**Chose:** host on Render's free plan, with the database on a separate free Postgres (Neon or Supabase, picked at deploy time). **Considered:** Railway, Fly.io, Vercel + serverless; Render's own Postgres.
 
-Render's free plan has two catches: services sleep after 15 minutes idle (first visit takes about a minute), and local files, including SQLite databases, are wiped on restart. Render's free Postgres expires after 30 days. So the plan is to keep the data in a separate free Postgres service (to be confirmed when we deploy: Neon or Supabase).
+Render's free plan has two catches: services sleep after 15 minutes idle (the first visit then takes about a minute), and local files, including SQLite databases, are wiped on restart. Render's free Postgres expires after 30 days. So the data goes in a separate Postgres. The app supports both: SQLite on your computer (nothing to install), Postgres in production (set `DATABASE_URL`). The tests run against both.
+
+### 10. Our own email + password login, with JWT tokens
+
+**Chose:** accounts built into the API: Argon2 password hashes, JWT tokens sent in the `Authorization` header. **Considered:** Google sign-in, a hosted auth service (Clerk, Supabase Auth), cookie sessions.
+
+It's free, needs no extra service or setup, and every part is visible in the code, which is useful for learning and explaining. Argon2 is the current recommended password hash. The token goes in a header rather than a cookie because the website and API live on different domains on Render, where cookies need extra cross-site setup. The trade-off is that the token sits in browser storage, so the website must never render untrusted HTML (React escapes text by default). Google sign-in can be added later without changing the rest.
+
+**Not done yet:** limiting repeated login attempts (rate limiting), password reset by email, and email verification. They're on the roadmap.
+
+### 11. Profile stored as one JSON document
+
+**Chose:** one `profile` row per user, with all sections in a JSON column, validated by a Pydantic model. **Considered:** a database column per field (~40 columns), or a table per section.
+
+The profile is always read and saved as a whole, and its fields will keep changing as we learn what forms ask. With JSON, adding a field is a one-line code change with no database migration, and Pydantic still rejects bad values (e.g. a minimum salary above the maximum). Data the app searches or joins on (users, resumes, applications) keeps proper columns.
+
+### 12. Alembic migrations instead of "create tables on startup"
+
+**Chose:** Alembic, applied automatically when the API starts. **Considered:** `SQLModel.metadata.create_all()`, as before.
+
+`create_all` only creates missing tables; it can't change existing ones. Once real profiles are in a hosted database, adding a column has to upgrade it safely. Alembic records each change as a reviewed file in `migrations/versions/`. One gotcha we hit: LangGraph keeps its own tables in the same database, and Alembic would have generated a migration deleting them. Alembic is now limited to our tables, and a test checks it.
+
+### 13. Keep the original resume file, in the database
+
+**Chose:** store the uploaded file's bytes in the `resume` table. **Considered:** keep only the extracted text; store files in S3 / Cloudflare R2.
+
+Job forms ask you to upload a resume file, so assisted apply (step 3) needs the original. Free Render wipes local files, and an object store would be one more account to set up. Resumes are small (5 MB limit), so the database is fine at this scale. If storage ever becomes a problem, moving files to an object store is a contained change.
+
+### 14. Profile fields based on common application forms
+
+**Chose:** fields taken from what Greenhouse, Lever, Workday, Naukri and company career pages usually ask, with Indian specifics (salary in LPA, notice period, class 10/12 marks). Sensitive fields (date of birth, gender, disability, veteran status) are optional and offer "prefer not to say". Anything else a form asks is kept as a saved answer, so the profile doesn't need a field for every possible question.

@@ -32,6 +32,13 @@ class ResumeProfile(BaseModel):
     name: str = ""
     headline: str = ""
     summary: str = ""
+    # Contact details, used to pre-fill your profile
+    email: str = ""
+    phone: str = ""
+    location: str = Field("", description="City (and state/country) as written on the resume")
+    linkedin_url: str = ""
+    github_url: str = ""
+    portfolio_url: str = ""
     skills: list[str] = Field(default_factory=list)
     experience: list[Experience] = Field(default_factory=list)
     projects: list[Project] = Field(default_factory=list)

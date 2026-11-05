@@ -73,30 +73,46 @@ npm install && npm run dev    # http://localhost:3000
 Open http://localhost:8000/docs for interactive API docs. Using the API directly:
 
 ```bash
-# 1. upload resume (PDF or text)
-curl -F file=@resume.pdf localhost:8000/api/resumes
+# 1. create an account and keep the login token
+TOKEN=$(curl -s -X POST localhost:8000/api/auth/signup -H 'content-type: application/json' \
+  -d '{"email": "you@example.com", "password": "a-long-password"}' | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+AUTH="Authorization: Bearer $TOKEN"
 
-# 2. analyse a job; runs the agent and pauses for review
-curl -X POST localhost:8000/api/applications -H 'content-type: application/json' \
-  -d '{"resume_id": 1, "job_text": "<paste the job description>"}'
+# 2. upload your resume (becomes your active resume and fills your profile)
+curl -H "$AUTH" -F file=@resume.pdf localhost:8000/api/resumes
 
-# 3. ask for a revision, or approve
-curl -X POST localhost:8000/api/applications/1/review -H 'content-type: application/json' \
+# 3. analyse a job; runs the agent and pauses for review
+curl -X POST localhost:8000/api/applications -H "$AUTH" -H 'content-type: application/json' \
+  -d '{"job_text": "<paste the job description>"}'
+
+# 4. ask for a revision, or approve
+curl -X POST localhost:8000/api/applications/1/review -H "$AUTH" -H 'content-type: application/json' \
   -d '{"action": "revise", "target": "cover_letter", "feedback": "shorter, mention my RAG project"}'
-curl -X POST localhost:8000/api/applications/1/review -d '{"action":"approve"}' -H 'content-type: application/json'
+curl -X POST localhost:8000/api/applications/1/review -H "$AUTH" -H 'content-type: application/json' \
+  -d '{"action": "approve"}'
 
-# 4. track it
-curl -X PATCH localhost:8000/api/applications/1 -H 'content-type: application/json' -d '{"status":"applied"}'
+# 5. track it
+curl -X PATCH localhost:8000/api/applications/1 -H "$AUTH" -H 'content-type: application/json' -d '{"status": "applied"}'
 ```
 
 ## API
 
+Everything except sign up, log in, `/health` and `/api/graph` needs the header `Authorization: Bearer <token>`, and only ever sees the logged-in user's data. Full interactive docs at `/docs`.
+
 | Method | Path | |
 |---|---|---|
-| `POST` | `/api/resumes` | Upload PDF/TXT (`file`) or `text`; parsed into a structured profile |
-| `GET` | `/api/resumes` | List resumes |
-| `POST` | `/api/applications` | Run the agent on a job post |
-| `POST` | `/api/applications/stream` | Same, streamed as server-sent events (one per finished node) |
+| `POST` | `/api/auth/signup` | Create an account: `{"email", "password"}` → login token |
+| `POST` | `/api/auth/login` | `{"email", "password"}` → login token |
+| `GET` | `/api/auth/me` | The logged-in user |
+| `GET / PUT` | `/api/profile` | Your profile (all sections), the active resume, and what's still missing |
+| `PUT` | `/api/profile/active-resume` | `{"resume_id"}`: choose which resume to use |
+| `GET / POST` | `/api/profile/answers` | Saved answers to extra form questions (POST updates an existing question) |
+| `PATCH / DELETE` | `/api/profile/answers/{id}` | Edit or delete a saved answer |
+| `POST` | `/api/resumes` | Upload PDF/TXT (`file`) or `text`; becomes the active resume and fills empty profile fields |
+| `GET` | `/api/resumes`, `/api/resumes/{id}` | Your resumes |
+| `GET` | `/api/resumes/{id}/file` | Download the original file |
+| `POST` | `/api/applications` | Run the agent on a job post (uses the active resume unless `resume_id` is given) |
+| `POST` | `/api/applications/stream` | Same, streamed as server-sent events (one per finished step) |
 | `POST` | `/api/applications/{id}/review` | `{"action": "approve"}` or `{"action": "revise", "target": "bullets"\|"cover_letter"\|"outreach", "feedback": "..."}` |
 | `GET` | `/api/applications[?status=]` | Tracker list |
 | `GET / PATCH / DELETE` | `/api/applications/{id}` | Details, update status/notes, delete |
@@ -105,7 +121,7 @@ curl -X PATCH localhost:8000/api/applications/1 -H 'content-type: application/js
 ## Testing & evaluation
 
 ```bash
-pytest -q                  # 17 offline tests: scoring, graph paths, grounding loop, HITL, API
+pytest -q                  # 37 offline tests: scoring, agent paths, accounts, profile, data isolation, migrations
 python -m evals.run_evals  # real-LLM eval on a golden set (needs OPENAI_API_KEY)
 ```
 
@@ -119,11 +135,16 @@ The eval suite checks each case for: verdict in the expected range, expected gap
 backend/
   app/
     agent/        graph.py · nodes.py · prompts.py · scoring.py · state.py
-    main.py       FastAPI routes
-    db.py         SQLModel tables (resumes, applications)
+    routers/      API endpoints: auth · profile · resumes · applications
+    main.py       app setup: migrations, checkpointer, routers
+    auth.py       password hashing, login tokens, "who is logged in"
+    db.py         SQLModel tables (users, profiles, answers, resumes, applications)
+    profile_schema.py  every profile field, and what's required before applying
+    checkpointer.py    where the agent saves progress (SQLite or Postgres)
     llm.py        LLM client interface (OpenAI / fake)
     schemas.py    Pydantic models = LLM structured outputs
-  tests/          offline tests with FakeLLM
+  migrations/     Alembic database migrations
+  tests/          offline tests with FakeLLM (run on SQLite and Postgres)
   evals/          golden cases + eval runner
 frontend/
   app/            Next.js routes: board, resume, new, applications/[id]
