@@ -32,7 +32,7 @@ Everything the app writes goes to real recruiters under your name. A short revie
 
 **Chose:** every step calls `llm.structured(system, user, Schema)` and gets back a typed object. **Considered:** calling OpenAI directly inside each step.
 
-This keeps OpenAI-specific code in one file, so switching providers is a small change. It also lets tests swap in a fake AI, so the whole workflow is tested in about 2 seconds, offline, for free.
+This keeps provider-specific code in one file, so switching providers is a small change (it was: see decision 15). It also lets tests swap in a fake AI, so the whole workflow is tested in about 2 seconds, offline, for free.
 
 ### 6. Job posts and resumes are treated as untrusted
 
@@ -87,3 +87,13 @@ Job forms ask you to upload a resume file, so assisted apply (step 3) needs the 
 ### 14. Profile fields based on common application forms
 
 **Chose:** fields taken from what Greenhouse, Lever, Workday, Naukri and company career pages usually ask, with Indian specifics (salary in LPA, notice period, class 10/12 marks). Sensitive fields (date of birth, gender, disability, veteran status) are optional and offer "prefer not to say". Anything else a form asks is kept as a saved answer, so the profile doesn't need a field for every possible question.
+
+### 15. Gemini's free tier as the default AI provider, OpenAI as an option
+
+**Chose:** `LLM_PROVIDER=gemini` by default, with `gemini-3.8-flash`; OpenAI still supported with `LLM_PROVIDER=openai`. **Considered:** OpenAI only; Groq's free tier.
+
+OpenAI's API is pay-as-you-go and separate from a ChatGPT subscription, so it costs money even to try. Gemini has a standing free tier (no card) for its Flash models, which is enough for personal use and development. Groq's free tier was also considered (and doesn't train on your data), but its per-minute token limit is too small for one analysis, which sends about six large requests.
+
+**Trade-offs, accepted knowingly:** on the free tier Google may use the content you send (your resume and job posts) to improve its products, and human reviewers may read it; moving to Gemini's paid tier or to OpenAI avoids that. Free-tier rate limits are low and not published (they're shown in Google AI Studio), so the client retries on "quota" errors. Answers differ somewhat between providers; the eval suite (`python -m evals.run_evals`) is the way to compare them.
+
+Thanks to decision 5, the switch was one file (`app/llm.py`) plus settings; no agent code changed.

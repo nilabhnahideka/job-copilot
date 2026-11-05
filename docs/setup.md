@@ -4,7 +4,7 @@ This guide takes you from nothing to Job Copilot running on your own computer. N
 
 There are two parts to run:
 
-- **Backend (the "brain")**: a Python server that talks to OpenAI and stores your data. It runs at `http://localhost:8000`.
+- **Backend (the "brain")**: a Python server that talks to the AI (Gemini or OpenAI) and stores your data. It runs at `http://localhost:8000`.
 - **Frontend (the website)**: the pages you click around in. It runs at `http://localhost:3000` and talks to the backend.
 
 You can run both with **Docker** (one command), or run each part **directly** (better while developing, because changes show up instantly).
@@ -33,24 +33,34 @@ cd job-copilot
 
 `git clone` downloads the project and its full history into a folder called `job-copilot`.
 
-## 3. Add your OpenAI key
+## 3. Add your AI key
 
-The backend needs an OpenAI API key to call the AI model. You can create one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
+The backend needs a key to use an AI model. It supports two providers; pick one:
+
+| Provider | Cost | Get a key |
+|---|---|---|
+| **Google Gemini** (default) | Free tier, no card needed. On the free tier, Google may use what you send (your resume and job posts) to improve its products. | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → **Create API key** |
+| OpenAI | Pay as you go (add credit first). Your ChatGPT subscription doesn't include it. | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+
+Create the settings file from the example:
 
 ```bash
 cd backend
 cp .env.example .env        # on Windows: copy .env.example .env
 ```
 
-Open the new `backend/.env` file in any text editor and replace `sk-...` with your key:
+Open the new `backend/.env` file in any text editor and paste your key after the `=`, with no spaces or quotes:
 
 ```
-OPENAI_API_KEY=sk-your-real-key-here
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=paste-your-key-here
 ```
+
+(For OpenAI instead: `LLM_PROVIDER=openai` and `OPENAI_API_KEY=sk-...`.)
 
 You can leave `JWT_SECRET` empty on your own computer; the app then uses a development secret and prints a warning. It must be set when deploying (the app refuses to start in production without it).
 
-> **Keep this key secret.** `.env` is listed in `.gitignore`, so Git will never upload it to GitHub. Never paste the key into code, chats or screenshots. If it ever leaks, delete it on the OpenAI site and create a new one.
+> **Keep this key secret.** `.env` is listed in `.gitignore`, so Git will never upload it to GitHub. Never paste the key into code, chats or screenshots. If it ever leaks, delete it on the provider's site and create a new one.
 
 ---
 
@@ -80,6 +90,7 @@ cd backend
 python -m venv .venv                 # create an isolated Python environment for this project
 source .venv/bin/activate            # turn it on (Windows: .venv\Scripts\activate)
 pip install -e ".[dev]"              # install the backend and its developer tools
+python -m app.llm check              # one tiny AI request: should end with "WORKING"
 uvicorn app.main:app --reload        # start the server; --reload restarts it when you edit code
 ```
 
@@ -116,7 +127,7 @@ These are the same checks GitHub runs automatically on every push (the "Actions"
 cd backend
 ruff check .              # code style and common mistakes
 pytest -q                 # offline tests; no API key needed, takes ~10 seconds
-python -m evals.run_evals # quality checks against the real AI model (uses your key; costs a few cents)
+python -m evals.run_evals # quality checks against the real AI model (uses your key; free on Gemini)
 
 cd ../frontend
 npm run lint              # code style
@@ -128,7 +139,9 @@ npm run build             # makes sure the website compiles
 | Problem | Fix |
 |---|---|
 | Website says "Can't reach the API" | The backend isn't running, or isn't on port 8000. Start it (terminal 1). |
-| `OPENAI_API_KEY is not set` | You haven't created `backend/.env`, or the key line is wrong. See step 3. |
+| `GEMINI_API_KEY is not set` (or `OPENAI_API_KEY`) | You haven't created `backend/.env`, or the key line is wrong. See step 3. |
+| `python -m app.llm check` says NOT WORKING | Read the message after it. "API key not valid": copy the key again. "quota" / "429" / "RESOURCE_EXHAUSTED": the free tier's per-minute or daily limit; wait a minute (daily limits reset at midnight US Pacific time, around 12:30–1:30 pm in India). "not found" for the model: change `GEMINI_MODEL` to a model marked free on [Google's pricing page](https://ai.google.dev/gemini-api/docs/pricing). |
+| Analysing a job is slow or fails with "quota" on Gemini | The free tier allows only a few requests per minute, and one analysis makes about 6. The app retries automatically; if it still fails, wait a minute and try again. |
 | `command not found: python` | Try `python3` instead, or install Python (step 1). |
 | A port is "already in use" | Something else is using 3000 or 8000. Stop it, or close the old terminal running the app. |
 | Errors about missing tables or columns after updating the code | Your local database is from an older version. The API upgrades it on start; if it still fails, delete the `backend/data/` folder (this deletes your local test data) and restart. |

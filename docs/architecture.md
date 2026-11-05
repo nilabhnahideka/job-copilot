@@ -9,7 +9,7 @@ flowchart LR
     U([You]) --> W["Website<br/>Next.js"]
     W -- "HTTP / JSON + login token<br/>+ live progress (SSE)" --> A["API<br/>FastAPI"]
     A --> G["Agent<br/>LangGraph"]
-    G -- "structured prompts" --> O[("OpenAI")]
+    G -- "structured prompts" --> O[("AI model<br/>Gemini or OpenAI")]
     A --> D[("Database<br/>accounts, profiles, resumes,<br/>applications, agent checkpoints")]
     G --> D
 ```
@@ -21,7 +21,7 @@ flowchart LR
 | Accounts | `backend/app/auth.py` | Password hashing and login tokens (see below). |
 | Profile | `backend/app/profile_schema.py` | Every field an application form might ask, and which ones are required before applying. |
 | Agent | `backend/app/agent/` | The step-by-step AI workflow (described below). |
-| LLM client | `backend/app/llm.py` | The only place that talks to OpenAI. Everything else asks it for typed results. |
+| LLM client | `backend/app/llm.py` | The only place that talks to the AI provider (Gemini or OpenAI, set by `LLM_PROVIDER`). Everything else asks it for typed results. |
 | Database | `backend/app/db.py`, `backend/migrations/` | Tables for users, profiles, saved answers, resumes and applications. Alembic migrations create and upgrade them. |
 | Checkpoints | `backend/app/checkpointer.py` | A saved copy of each agent run, so it can pause for your review and continue later. |
 
@@ -75,7 +75,7 @@ sequenceDiagram
     participant Web as Website
     participant API
     participant Agent
-    participant AI as OpenAI
+    participant AI as AI model
 
     You->>Web: Paste job post, click "Analyse job"
     Web->>API: POST /api/applications/stream (+ login token)
@@ -145,7 +145,7 @@ Everything is in one database, set by `DATABASE_URL`:
 |---|---|---|
 | Database | SQLite file `backend/data/copilot.db` | Postgres (Neon or Supabase, picked at deploy time) |
 | Agent checkpoints | separate SQLite file `backend/data/checkpoints.db` | same Postgres database, LangGraph's own tables |
-| Your OpenAI key, `JWT_SECRET` | `backend/.env` (never committed) | Render's environment settings |
+| Your AI key, `JWT_SECRET` | `backend/.env` (never committed) | Render's environment settings |
 
 | Table | Holds |
 |---|---|

@@ -2,7 +2,7 @@
 
 An AI agent that reads a job posting, compares it to your resume, and drafts a tailored application: a **fit score with gap analysis**, **rewritten resume bullets**, a **cover letter** and a **recruiter message**. It **fact-checks its own rewrites** so it never invents experience, and it **waits for your review** before anything is final.
 
-Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI**, **Postgres / SQLite** and **Next.js**, with tests, evals, Docker and CI.
+Built with **LangGraph**, **LangChain**, **Gemini or OpenAI**, **FastAPI**, **Postgres / SQLite** and **Next.js**, with tests, evals, Docker and CI.
 
 > Status: agent ✅ · web app ✅ · accounts & profile ✅ · job search 🚧 · assisted apply 🚧 · deployment 🚧
 
@@ -52,7 +52,7 @@ The bar under the score is the score's breakdown: one segment per job requiremen
 **Everything with Docker:**
 
 ```bash
-cp backend/.env.example backend/.env   # add your OPENAI_API_KEY
+cp backend/.env.example backend/.env   # add your GEMINI_API_KEY (free) or OPENAI_API_KEY
 docker compose up --build              # web: http://localhost:3000  API: http://localhost:8000/docs
 ```
 
@@ -62,7 +62,8 @@ docker compose up --build              # web: http://localhost:3000  API: http:/
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env          # add your OPENAI_API_KEY
+cp .env.example .env          # add your GEMINI_API_KEY (free) or OPENAI_API_KEY
+python -m app.llm check       # one tiny AI request to confirm the key works
 uvicorn app.main:app --reload
 ```
 
@@ -126,10 +127,10 @@ Everything except sign up, log in, `/health` and `/api/graph` needs the header `
 
 ```bash
 pytest -q                  # 37 offline tests: scoring, agent paths, accounts, profile, data isolation, migrations
-python -m evals.run_evals  # real-LLM eval on a golden set (needs OPENAI_API_KEY)
+python -m evals.run_evals  # real-LLM eval on a golden set (uses your configured provider)
 ```
 
-The eval suite checks each case for: verdict in the expected range, expected gaps surfaced, rewrites grounded in real bullets, and no technologies invented. CI runs backend lint + tests + Docker build and frontend lint + build on every push, plus evals when the `OPENAI_API_KEY` secret is set.
+The eval suite checks each case for: verdict in the expected range, expected gaps surfaced, rewrites grounded in real bullets, and no technologies invented. CI runs backend lint + tests + Docker build and frontend lint + build on every push, plus evals when the `GEMINI_API_KEY` repository secret is set.
 
 **Tracing:** set `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` in `.env`, and every graph run appears in LangSmith with per-node latency and token cost.
 
@@ -145,7 +146,7 @@ backend/
     db.py         SQLModel tables (users, profiles, answers, resumes, applications)
     profile_schema.py  every profile field, and what's required before applying
     checkpointer.py    where the agent saves progress (SQLite or Postgres)
-    llm.py        LLM client interface (OpenAI / fake)
+    llm.py        LLM client: Gemini or OpenAI (tests use a fake); `python -m app.llm check`
     schemas.py    Pydantic models = LLM structured outputs
   migrations/     Alembic database migrations
   tests/          offline tests with FakeLLM (run on SQLite and Postgres)

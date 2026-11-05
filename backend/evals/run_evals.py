@@ -1,4 +1,4 @@
-"""Run the real agent (with OpenAI) against a small golden set.
+"""Run the real agent (with your configured AI provider) against a small golden set.
 
     cd backend && python -m evals.run_evals
 

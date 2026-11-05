@@ -5,9 +5,10 @@ Every setting can be overridden with an env var of the same name in upper case
 """
 
 from functools import lru_cache
+from typing import Literal
 
 from dotenv import load_dotenv
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Also export .env into os.environ so LangSmith tracing (LANGSMITH_*) picks it up.
@@ -23,9 +24,18 @@ class Settings(BaseSettings):
     # "development" or "production". Production turns on stricter checks.
     environment: str = "development"
 
+    # Which AI provider to use: "gemini" (has a free tier) or "openai" (paid).
+    llm_provider: Literal["gemini", "openai"] = "gemini"
+    llm_temperature: float = 0.2
+
+    # Free key: https://aistudio.google.com/apikey  (GOOGLE_API_KEY also works)
+    gemini_api_key: str = Field(default="", validation_alias=AliasChoices("gemini_api_key", "google_api_key"))
+    # Must be a model marked "Free of charge" on https://ai.google.dev/gemini-api/docs/pricing
+    gemini_model: str = "gemini-3.8-flash"
+
+    # Paid key: https://platform.openai.com/api-keys
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
-    openai_temperature: float = 0.2
 
     # SQLite file locally; a Postgres URL (e.g. from Neon) in production.
     # Both "postgres://" and "postgresql://" URLs are accepted.
@@ -83,7 +93,9 @@ class Settings(BaseSettings):
             problems.append("JWT_SECRET must be set to a random string of at least 32 characters")
         if not self.is_postgres:
             problems.append("DATABASE_URL must point to Postgres (local files are wiped on Render)")
-        if not self.openai_api_key:
+        if self.llm_provider == "gemini" and not self.gemini_api_key:
+            problems.append("GEMINI_API_KEY is not set")
+        if self.llm_provider == "openai" and not self.openai_api_key:
             problems.append("OPENAI_API_KEY is not set")
         if problems:
             raise RuntimeError("Unsafe production settings:\n- " + "\n- ".join(problems))

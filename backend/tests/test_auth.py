@@ -83,20 +83,20 @@ def test_production_refuses_unsafe_settings(monkeypatch):
 
     from app.config import Settings
 
-    for var in ("JWT_SECRET", "OPENAI_API_KEY"):
+    for var in ("JWT_SECRET", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     # _env_file=None: ignore any real .env on this computer
     unsafe = Settings(_env_file=None, environment="production", database_url="sqlite:///x.db")
     with pytest.raises(RuntimeError) as e:
         unsafe.validate_for_production()
-    assert "JWT_SECRET" in str(e.value) and "Postgres" in str(e.value)
+    assert "JWT_SECRET" in str(e.value) and "Postgres" in str(e.value) and "GEMINI_API_KEY" in str(e.value)
 
     safe = Settings(
         _env_file=None,
         environment="production",
         database_url="postgresql://u:p@host/db",
         jwt_secret="r" * 48,
-        openai_api_key="sk-test",
+        gemini_api_key="test-key",
     )
     safe.validate_for_production()  # no error
 
@@ -113,7 +113,8 @@ def test_blank_jwt_secret_falls_back_to_dev_secret_and_is_refused_in_production(
         environment="production",
         jwt_secret="",
         database_url="postgresql://u:p@h/d",
-        openai_api_key="k",
+        gemini_api_key="k",
     )
-    with pytest.raises(RuntimeError, match="JWT_SECRET"):
+    with pytest.raises(RuntimeError) as e:
         prod.validate_for_production()
+    assert "JWT_SECRET" in str(e.value) and "API_KEY" not in str(e.value)  # only the secret is wrong

@@ -9,6 +9,8 @@ dependencies = [
     "langgraph>=1.0",
     "langgraph-checkpoint-sqlite>=3.0",
     "langchain-core>=1.0",
+    # AI providers: Gemini (free tier) and OpenAI (paid), chosen with LLM_PROVIDER
+    "langchain-google-genai>=4.0",
     "langchain-openai>=1.0",
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
