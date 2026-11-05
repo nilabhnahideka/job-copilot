@@ -58,5 +58,23 @@ def test_revise_requires_target(client):
     assert client.post(f"/api/applications/{aid}/review", json={"action": "revise"}).status_code == 422
 
 
+def test_stream_emits_node_events_then_done(client):
+    import json
+
+    rid = _resume(client)
+    with client.stream("POST", "/api/applications/stream", json={"resume_id": rid, "job_text": JD}) as r:
+        assert r.status_code == 200
+        events = [json.loads(line[6:]) for line in r.iter_lines() if line.startswith("data: ")]
+
+    assert events[0]["type"] == "created"
+    nodes = [e["node"] for e in events if e["type"] == "node"]
+    assert nodes[:2] == ["parse_job", "match_resume"]
+    assert {"tailor_bullets", "check_grounding", "draft_cover_letter", "draft_outreach"} <= set(nodes)
+    done = events[-1]
+    assert done["type"] == "done"
+    assert done["application"]["awaiting_review"] is True
+    assert done["application"]["fit_score"] == 60
+
+
 def test_graph_endpoint(client):
     assert "human_review" in client.get("/api/graph").text

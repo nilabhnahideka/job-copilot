@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import sqlite3
 import uuid
@@ -10,7 +11,7 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 from pydantic import BaseModel, Field
@@ -18,7 +19,7 @@ from sqlmodel import Session, select
 
 from app.agent.graph import build_graph
 from app.config import get_settings
-from app.db import Application, ApplicationStatus, Resume, get_session, init_db
+from app.db import Application, ApplicationStatus, Resume, get_engine, get_session, init_db
 from app.resume_parser import extract_pdf_text, parse_resume
 from app.schemas import ResumeProfile, ReviewDecision
 
@@ -209,6 +210,58 @@ def create_application(
     _run_agent(graph, {"resume": resume.profile, "job_text": body.job_text}, _config(row))
     _sync_row(row, graph, session)
     return _to_out(row, graph)
+
+
+def _sse(event: dict) -> str:
+    return f"data: {json.dumps(event, default=str)}\n\n"
+
+
+@app.post("/api/applications/stream")
+def create_application_stream(
+    body: ApplicationCreate, session: Session = Depends(get_session), graph=Depends(get_graph)
+):
+    """Same as POST /api/applications, but streams one event per finished graph node (SSE).
+
+    Events: {"type": "created", "id"} -> {"type": "node", "node"}... -> {"type": "done", "application"}
+    or {"type": "error", "detail"}.
+    """
+    resume = session.get(Resume, body.resume_id)
+    if not resume:
+        raise HTTPException(404, "Resume not found")
+    row = Application(
+        resume_id=resume.id,
+        thread_id=str(uuid.uuid4()),
+        job_text=body.job_text,
+        job_url=body.job_url,
+        notes=body.notes,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    app_id, profile = row.id, resume.profile
+
+    def events():
+        yield _sse({"type": "created", "id": app_id})
+        # A fresh session: the request-scoped one may be closed while we stream.
+        with Session(get_engine()) as s:
+            app_row = s.get(Application, app_id)
+            try:
+                for update in graph.stream(
+                    {"resume": profile, "job_text": body.job_text},
+                    _config(app_row),
+                    stream_mode="updates",
+                ):
+                    for node in update:
+                        if node != "__interrupt__":
+                            yield _sse({"type": "node", "node": node})
+            except Exception as e:
+                log.exception("Agent run failed")
+                yield _sse({"type": "error", "detail": f"Agent failed: {e}"})
+                return
+            _sync_row(app_row, graph, s)
+            yield _sse({"type": "done", "application": _to_out(app_row, graph).model_dump(mode="json")})
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
 
 @app.post("/api/applications/{app_id}/review", response_model=ApplicationOut)
