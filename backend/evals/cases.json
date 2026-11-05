@@ -1,0 +1,23 @@
+[
+  {
+    "id": "strong_match_genai",
+    "resume": "Priya Nair\nML Engineer\nSkills: Python, PyTorch, LangChain, LangGraph, FastAPI, Docker, AWS, PostgreSQL\nExperience\nML Engineer, FinStack (2022-present)\n- Built a LangGraph multi-agent system that triages 3k support tickets/day, cutting response time 40%\n- Deployed RAG pipelines on AWS with pgvector and FastAPI\n- Set up LLM evaluation with LangSmith and a 300-example golden set\nData Scientist, RetailCo (2020-2022)\n- Trained demand forecasting models in PyTorch\nEducation: B.Tech Computer Science, NIT Trichy",
+    "job": "GenAI Engineer at Lumen Labs. Requirements: 2+ years Python. Experience building LLM applications with LangChain or LangGraph (required). RAG and vector databases (required). Deploying services on AWS or GCP. Nice to have: LLM evaluation, Kubernetes.",
+    "expect_verdict": ["strong_fit", "good_fit"],
+    "must_mention_gaps": ["kubernetes"]
+  },
+  {
+    "id": "poor_match_frontend_to_ml_research",
+    "resume": "Rahul Mehta\nFrontend Developer\nSkills: JavaScript, React, CSS, Figma\nExperience\nFrontend Developer, ShopNow (2021-present)\n- Built responsive React storefront used by 200k monthly users\n- Improved Lighthouse performance score from 62 to 95\nEducation: BCA, Pune University",
+    "job": "Research Scientist, Large Language Models. Requirements: PhD in ML or related field (required). Publications at NeurIPS/ICML/ICLR (required). Deep expertise in PyTorch and distributed training (required). Experience pretraining transformer models.",
+    "expect_verdict": ["poor_fit"],
+    "must_mention_gaps": ["phd", "pytorch"]
+  },
+  {
+    "id": "stretch_backend_to_genai",
+    "resume": "Asha Verma\nBackend Engineer\nSkills: Python, Django, FastAPI, PostgreSQL, Redis, Docker\nExperience\nBackend Engineer, PayFast (2021-present)\n- Built payment reconciliation service in FastAPI processing 1M transactions/day\n- Reduced p95 API latency from 800ms to 120ms with Redis caching\nSide project\n- Built a PDF Q&A bot with the OpenAI API and Streamlit\nEducation: B.E. IT, Mumbai University",
+    "job": "AI Engineer. Must have: Strong Python and API development. Experience with LLM APIs (OpenAI/Anthropic). Must have: production experience with agent frameworks such as LangGraph. Vector databases. Nice to have: fine-tuning, MLOps.",
+    "expect_verdict": ["stretch", "good_fit"],
+    "must_mention_gaps": ["langgraph"]
+  }
+]
