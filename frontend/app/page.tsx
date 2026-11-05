@@ -5,12 +5,21 @@
  */
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { RequireAuth } from "@/components/AuthProvider";
 import { ErrorNote } from "@/components/ui";
 import { api, type Application, type ApplicationStatus, STATUS_LABEL, STATUSES } from "@/lib/api";
 
 const COLUMNS: ApplicationStatus[] = ["draft", "ready", "applied", "interviewing", "offer", "rejected"];
 
-export default function Board() {
+export default function BoardPage() {
+  return (
+    <RequireAuth>
+      <Board />
+    </RequireAuth>
+  );
+}
+
+function Board() {
   const [apps, setApps] = useState<Application[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,12 +47,12 @@ export default function Board() {
           Paste a job post. Get an honest fit check and a tailored application.
         </h1>
         <p className="mt-4 text-graphite">
-          Start by adding your resume, then analyse your first job. Every application you analyse lands
-          on this board so you can track it from draft to offer.
+          Start by setting up your profile and uploading your resume, then analyse your first job. Every
+          application you analyse lands on this board so you can track it from draft to offer.
         </p>
         <div className="mt-6 flex gap-3">
-          <Link href="/resume" className="rounded-sm bg-ink px-3.5 py-2 text-sm font-medium text-sheet">
-            Add your resume
+          <Link href="/profile" className="rounded-sm bg-ink px-3.5 py-2 text-sm font-medium text-sheet">
+            Set up your profile
           </Link>
           <Link href="/new" className="rounded-sm border border-ink/30 px-3.5 py-2 text-sm font-medium">
             Analyse a job

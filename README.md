@@ -2,11 +2,15 @@
 
 An AI agent that reads a job posting, compares it to your resume, and drafts a tailored application: a **fit score with gap analysis**, **rewritten resume bullets**, a **cover letter** and a **recruiter message**. It **fact-checks its own rewrites** so it never invents experience, and it **waits for your review** before anything is final.
 
-Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI**, **SQLite** and **Next.js**, with tests, evals, Docker and CI.
+Built with **LangGraph**, **LangChain**, **OpenAI**, **FastAPI**, **Postgres / SQLite** and **Next.js**, with tests, evals, Docker and CI.
 
-> Status: backend ✅ · web app ✅ · deployment 🚧
+> Status: agent ✅ · web app ✅ · accounts & profile ✅ · job search 🚧 · assisted apply 🚧 · deployment 🚧
 
 ![Application page](docs/screenshot-application.png)
+
+![Profile page](docs/screenshot-profile.png)
+
+The profile is filled in once: resume, contact details, the jobs you want, and the questions most application forms ask (notice period, salary in LPA, and so on). Uploading a resume fills the empty fields, and the checklist shows what's still needed before the app can apply for you.
 
 The bar under the score is the score's breakdown: one segment per job requirement (must-haves are wider), filled when your resume covers it, hatched when it partly does, dashed red when it's missing. In the rewritten bullets, the highlighted words are the ones the agent added.
 
@@ -39,7 +43,7 @@ The bar under the score is the score's breakdown: one segment per job requiremen
 
 - **Deterministic scoring.** Asking an LLM to "rate fit 0–100" gives noisy, unexplainable numbers. Here the LLM only labels each requirement, and a weighted formula (must-have ×2, strong = 1, partial = 0.5) computes the score. Two missing must-haves cap it at 59. It's stable, explainable and unit-tested.
 - **Two layers of hallucination defence.** (1) A code check: every rewrite's `original` must exist verbatim on the resume. (2) An LLM fact-checker that flags new tools, numbers or scope. Failures feed back into a self-correction loop.
-- **Human-in-the-loop with durable state.** LangGraph's `interrupt` + `SqliteSaver` means each application is a resumable thread. The REST API just resumes it with `Command(resume=...)`.
+- **Human-in-the-loop with durable state.** LangGraph's `interrupt` + a checkpointer (SQLite locally, Postgres in production) means each application is a resumable thread. The REST API just resumes it with `Command(resume=...)`.
 - **Prompt-injection hygiene.** Resumes and job posts are untrusted input. They're wrapped in `<resume>`/`<job>` tags, and system prompts tell the model to ignore instructions inside them.
 - **Provider-agnostic, testable LLM layer.** Nodes call `llm.structured(system, user, Schema)`. Tests inject a deterministic `FakeLLM`, so the whole graph, including retries and interrupts, is tested offline in under 2 seconds.
 
@@ -147,9 +151,9 @@ backend/
   tests/          offline tests with FakeLLM (run on SQLite and Postgres)
   evals/          golden cases + eval runner
 frontend/
-  app/            Next.js routes: board, resume, new, applications/[id]
-  components/     RequirementStrip, ApplicationView, UI bits
-  lib/            typed API client + SSE reader, word diff
+  app/            Next.js routes: board, login, signup, profile, new, applications/[id]
+  components/     AuthProvider, ProfileView, ApplicationView, RequirementStrip, form fields
+  lib/            typed API client + SSE reader, login token storage, word diff
 docker-compose.yml
 ```
 
@@ -159,7 +163,7 @@ The goal: set up your profile once, then let the app find matching jobs and prep
 
 - [x] Agent: match, gap analysis, fact-checked resume rewrites, cover letter, recruiter message
 - [x] Web app: resume upload, live progress, review/revise, application board
-- [ ] **Step 1: accounts and profile.** Log in once and save your resume, details, job preferences and common form answers
+- [x] **Step 1: accounts and profile.** Log in once and save your resume, details, job preferences and common form answers
 - [ ] **Step 2: job search.** Find matching jobs from public company career pages and rank them by fit
 - [ ] **Step 3: assisted apply.** Fill application forms automatically, ask you only for missing answers, and you click submit
 - [ ] **Step 4: deploy.** Host on Render with a hosted Postgres database

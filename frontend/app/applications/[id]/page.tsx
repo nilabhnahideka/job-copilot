@@ -4,10 +4,15 @@
  */
 import { Suspense } from "react";
 import { ApplicationView } from "@/components/ApplicationView";
+import { RequireAuth } from "@/components/AuthProvider";
 
 async function View({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <ApplicationView id={id} />;
+  return (
+    <RequireAuth>
+      <ApplicationView id={id} />
+    </RequireAuth>
+  );
 }
 
 export default function ApplicationPage({ params }: PageProps<"/applications/[id]">) {

@@ -48,6 +48,8 @@ Open the new `backend/.env` file in any text editor and replace `sk-...` with yo
 OPENAI_API_KEY=sk-your-real-key-here
 ```
 
+You can leave `JWT_SECRET` empty on your own computer; the app then uses a development secret and prints a warning. It must be set when deploying (the app refuses to start in production without it).
+
 > **Keep this key secret.** `.env` is listed in `.gitignore`, so Git will never upload it to GitHub. Never paste the key into code, chats or screenshots. If it ever leaks, delete it on the OpenAI site and create a new one.
 
 ---
@@ -98,11 +100,13 @@ Open http://localhost:3000.
 
 ## 4. Try it
 
-1. Go to **Resume** and upload your resume as a PDF, or paste its text.
-2. Click **Analyse a job** and paste a full job description.
-3. Watch the steps tick off. You'll land on the results page with your fit score, gaps and drafts.
-4. Ask for a change to a draft, or click **Approve drafts**.
-5. Go back to **Applications** and move the job along the board as you apply.
+1. Click **Sign up** and create an account (any email and a password of 8+ characters; it stays on your computer).
+2. Go to **Profile** and upload your resume as a PDF. Empty fields like your name and phone are filled from it.
+3. Fill in the rest of your profile. The page lists what's still missing.
+4. Click **Analyse a job** and paste a full job description.
+5. Watch the steps tick off. You'll land on the results page with your fit score, gaps and drafts.
+6. Ask for a change to a draft, or click **Approve drafts**.
+7. Go back to **Applications** and move the job along the board as you apply.
 
 ## 5. Run the checks
 
@@ -111,7 +115,7 @@ These are the same checks GitHub runs automatically on every push (the "Actions"
 ```bash
 cd backend
 ruff check .              # code style and common mistakes
-pytest -q                 # offline tests; no API key needed, takes ~2 seconds
+pytest -q                 # offline tests; no API key needed, takes ~10 seconds
 python -m evals.run_evals # quality checks against the real AI model (uses your key; costs a few cents)
 
 cd ../frontend
@@ -127,4 +131,6 @@ npm run build             # makes sure the website compiles
 | `OPENAI_API_KEY is not set` | You haven't created `backend/.env`, or the key line is wrong. See step 3. |
 | `command not found: python` | Try `python3` instead, or install Python (step 1). |
 | A port is "already in use" | Something else is using 3000 or 8000. Stop it, or close the old terminal running the app. |
-| Resume upload says it can't read the PDF | The PDF is probably a scanned image. Export it as a text PDF, or paste the text instead. |
+| Errors about missing tables or columns after updating the code | Your local database is from an older version. The API upgrades it on start; if it still fails, delete the `backend/data/` folder (this deletes your local test data) and restart. |
+| "Log in to continue" everywhere | Your login expired (after 7 days) or the backend's `JWT_SECRET` changed. Log in again. |
+| Resume upload says it can't read the PDF | The PDF is probably a scanned image. Export a text-based PDF instead (e.g. "Save as PDF" or "Download as PDF" from Word or Google Docs). |

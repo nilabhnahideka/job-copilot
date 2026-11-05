@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { RequireAuth } from "@/components/AuthProvider";
 import { Button, ErrorNote } from "@/components/ui";
 import { api, createApplicationStream, type Resume } from "@/lib/api";
 
@@ -19,7 +20,15 @@ const STEPS: { node: string; label: string }[] = [
   { node: "draft_outreach", label: "Writing a message for the recruiter" },
 ];
 
-export default function NewApplication() {
+export default function NewApplicationPage() {
+  return (
+    <RequireAuth>
+      <NewApplication />
+    </RequireAuth>
+  );
+}
+
+function NewApplication() {
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[] | null>(null);
   const [resumeId, setResumeId] = useState<number | null>(null);
@@ -30,11 +39,11 @@ export default function NewApplication() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .listResumes()
-      .then((r) => {
+    // Start with the resume chosen as active on the profile page.
+    Promise.all([api.listResumes(), api.getProfile()])
+      .then(([r, p]) => {
         setResumes(r);
-        if (r[0]) setResumeId(r[0].id);
+        setResumeId(p.active_resume?.id ?? r[0]?.id ?? null);
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -62,8 +71,8 @@ export default function NewApplication() {
       <div className="max-w-lg">
         <h1 className="font-serif text-3xl font-medium">Add your resume first</h1>
         <p className="mt-3 text-graphite">Each job is checked against your resume, so the agent needs one to work from.</p>
-        <Link href="/resume" className="mt-5 inline-block rounded-sm bg-ink px-3.5 py-2 text-sm font-medium text-sheet">
-          Add your resume
+        <Link href="/profile#resume" className="mt-5 inline-block rounded-sm bg-ink px-3.5 py-2 text-sm font-medium text-sheet">
+          Upload it on your profile
         </Link>
       </div>
     );
@@ -84,7 +93,7 @@ export default function NewApplication() {
             >
               {resumes.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.label}
+                  {r.file_name || r.label}
                 </option>
               ))}
             </select>

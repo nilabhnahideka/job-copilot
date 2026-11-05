@@ -16,8 +16,13 @@ What changed in each step of the project, newest first.
 - Production safety checks: the API refuses to start without a strong `JWT_SECRET`, a Postgres database and an OpenAI key.
 - Tests for accounts, profile, data isolation and migrations (37 in total), run on both SQLite and Postgres in CI.
 
+- Website: log in and sign up pages; every other page needs an account and sends you back to the page you wanted after logging in.
+- Website: profile page with a checklist of what's missing, a section menu, an unsaved-changes bar (save or discard), resume upload with "filled from your resume" notice, earlier resume versions, and saved answers.
+
 ### Changed
 - API endpoints split into `app/routers/` by topic.
+- The resume page moved into the profile page (`/resume` redirects there).
+- "Analyse a job" starts from the resume chosen on your profile.
 - `resume_id` is optional when analysing a job; the active resume is used.
 
 ## 0.2.1: Documentation
