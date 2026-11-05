@@ -1,3 +1,5 @@
+"""End-to-end tests of the HTTP API: upload, analyse, review, track, delete."""
+
 JD = "Nimbus AI is hiring a GenAI Engineer. Must have Python and LLM experience. Kubernetes is a plus. " * 2
 
 

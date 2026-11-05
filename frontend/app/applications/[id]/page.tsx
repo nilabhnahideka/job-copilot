@@ -1,3 +1,7 @@
+/**
+ * Route /applications/[id]. Reads the id from the URL and renders ApplicationView.
+ * Next.js 16 requires params to be awaited inside a <Suspense> boundary.
+ */
 import { Suspense } from "react";
 import { ApplicationView } from "@/components/ApplicationView";
 

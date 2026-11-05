@@ -1,3 +1,5 @@
+"""Shared pytest fixtures: a fake LLM and an API test client on a temporary database."""
+
 import pytest
 from fastapi.testclient import TestClient
 

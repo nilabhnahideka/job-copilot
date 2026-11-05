@@ -1,3 +1,14 @@
+"""FastAPI app: the HTTP API the web frontend talks to.
+
+Flow for one job application:
+1. POST /api/resumes                      upload + parse a resume
+2. POST /api/applications(/stream)        run the agent; it pauses at human review
+3. POST /api/applications/{id}/review     revise a draft, or approve
+4. PATCH /api/applications/{id}           move it along the tracker (applied, interview...)
+
+The agent's state lives in a SQLite checkpointer keyed by each application's
+`thread_id`, so a paused review can be resumed in a later request."""
+
 from __future__ import annotations
 
 import json

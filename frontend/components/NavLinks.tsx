@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Top navigation links; underlines the section you are currently in.
+ */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

@@ -1,3 +1,5 @@
+"""Unit tests for the deterministic fit score and keyword/grounding checks."""
+
 from app.agent.scoring import filter_known_originals, fit_score, missing_keywords, verdict
 from app.schemas import Importance, MatchAssessment, MatchLevel, RequirementMatch, TailoredBullet
 from tests.fakes import BULLET_1, MATCH, RESUME

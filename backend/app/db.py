@@ -1,3 +1,10 @@
+"""Database tables and connection helpers (SQLModel on top of SQLAlchemy).
+
+Two tables:
+- Resume: the raw resume text plus its parsed, structured profile.
+- Application: one job you analysed, its tracker status, and the `thread_id`
+  that links it to the agent's saved state in the LangGraph checkpointer."""
+
 from __future__ import annotations
 
 from collections.abc import Iterator

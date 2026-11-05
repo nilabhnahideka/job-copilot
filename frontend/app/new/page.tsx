@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Route /new. Paste a job post and run the agent, showing each step live as the
+ * backend streams progress events. Redirects to the application page when done.
+ */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

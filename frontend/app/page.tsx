@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Route /. The application board: every analysed job, grouped by status.
+ */
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ErrorNote } from "@/components/ui";

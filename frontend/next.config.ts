@@ -1,3 +1,6 @@
+/**
+ * Next.js configuration. `standalone` output keeps the Docker image small.
+ */
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

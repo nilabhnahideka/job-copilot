@@ -1,3 +1,8 @@
+"""App settings, read from environment variables or a `.env` file.
+
+Every setting can be overridden with an env var of the same name in upper case
+(e.g. OPENAI_MODEL=gpt-4o). See `.env.example` for the full list."""
+
 from functools import lru_cache
 
 from dotenv import load_dotenv

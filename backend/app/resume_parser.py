@@ -1,3 +1,5 @@
+"""Turns an uploaded resume (PDF or plain text) into a structured ResumeProfile."""
+
 from __future__ import annotations
 
 import io

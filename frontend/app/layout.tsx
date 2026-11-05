@@ -1,3 +1,6 @@
+/**
+ * Root layout: page shell with the top navigation bar, shared by every page.
+ */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";

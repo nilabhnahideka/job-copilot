@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Small shared UI pieces: buttons, the copy-to-clipboard button, error messages.
+ */
 import { useState } from "react";
 
 export function ErrorNote({ message }: { message: string | null }) {

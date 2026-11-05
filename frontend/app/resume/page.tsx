@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Route /resume. Upload a PDF or paste resume text, and view the parsed profiles.
+ */
 import { useEffect, useState } from "react";
 import { Button, ErrorNote } from "@/components/ui";
 import { api, type Resume } from "@/lib/api";

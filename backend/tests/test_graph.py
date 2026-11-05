@@ -1,3 +1,5 @@
+"""Tests of the agent graph itself: happy path, grounding retries, revise/approve loop."""
+
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 

@@ -12,6 +12,16 @@ The bar under the score is the score's breakdown: one segment per job requiremen
 
 ---
 
+## Documentation
+
+| | |
+|---|---|
+| [Setup guide](docs/setup.md) | Run it on your computer, step by step |
+| [How it works](docs/architecture.md) | The parts, the agent's steps, how the score is calculated |
+| [Decisions log](docs/decisions.md) | Why each technology and approach was chosen |
+| [Changelog](CHANGELOG.md) | What changed in each step |
+| [Contributing](CONTRIBUTING.md) | Commit message and documentation rules |
+
 ## How the agent works
 
 ![Agent graph](docs/agent-graph.png)
@@ -124,10 +134,11 @@ docker-compose.yml
 
 ## Roadmap
 
-- [x] Next.js frontend: resume upload, bullet diff, review/revise, application board
-- [x] Streaming progress (SSE) per graph node
-- [ ] Edit drafts inline before approving
-- [ ] Fetch job posts from a URL
-- [ ] Deploy (Render/Railway + Vercel) with Postgres
-- [ ] Export tailored resume as PDF/DOCX
-- [ ] Interview-prep node: likely questions + STAR answers from your experience
+The goal: set up your profile once, then let the app find matching jobs and prepare each application, with you approving before anything is submitted.
+
+- [x] Agent: match, gap analysis, fact-checked resume rewrites, cover letter, recruiter message
+- [x] Web app: resume upload, live progress, review/revise, application board
+- [ ] **Step 1: accounts and profile.** Log in once and save your resume, details, job preferences and common form answers
+- [ ] **Step 2: job search.** Find matching jobs from public company career pages and rank them by fit
+- [ ] **Step 3: assisted apply.** Fill application forms automatically, ask you only for missing answers, and you click submit
+- [ ] **Step 4: deploy.** Host on Render with a hosted Postgres database

@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Application page: fit score breakdown, gaps, tailored drafts and the
+ * review step (ask for a revision or approve). Also status and notes.
+ */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
