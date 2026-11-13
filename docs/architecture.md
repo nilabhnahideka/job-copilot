@@ -143,7 +143,7 @@ Everything is in one database, set by `DATABASE_URL`:
 
 | | On your computer | In production (Render) |
 |---|---|---|
-| Database | SQLite file `backend/data/copilot.db` | Postgres (Neon or Supabase, picked at deploy time) |
+| Database | SQLite file `backend/data/copilot.db` | Neon Postgres |
 | Agent checkpoints | separate SQLite file `backend/data/checkpoints.db` | same Postgres database, LangGraph's own tables |
 | Your AI key, `JWT_SECRET` | `backend/.env` (never committed) | Render's environment settings |
 

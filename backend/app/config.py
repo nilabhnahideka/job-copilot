@@ -64,7 +64,15 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        """Allowed website addresses. Forgiving about how they were pasted:
+        "job-copilot-web.onrender.com/" becomes "https://job-copilot-web.onrender.com"
+        (browsers send the origin without a trailing slash, so it must match exactly)."""
+        out = []
+        for o in self.cors_origins.split(","):
+            o = o.strip().rstrip("/")
+            if o:
+                out.append(o if "://" in o else f"https://{o}")
+        return out
 
     @property
     def is_postgres(self) -> bool:

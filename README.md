@@ -21,6 +21,7 @@ The bar under the score is the score's breakdown: one segment per job requiremen
 | | |
 |---|---|
 | [Setup guide](docs/setup.md) | Run it on your computer, step by step |
+| [Deploy guide](docs/deploy.md) | Put it online for free (Render + Neon + Gemini), in the browser |
 | [How it works](docs/architecture.md) | The parts, the agent's steps, how the score is calculated |
 | [Decisions log](docs/decisions.md) | Why each technology and approach was chosen |
 | [Changelog](CHANGELOG.md) | What changed in each step |
@@ -167,4 +168,4 @@ The goal: set up your profile once, then let the app find matching jobs and prep
 - [x] **Step 1: accounts and profile.** Log in once and save your resume, details, job preferences and common form answers
 - [ ] **Step 2: job search.** Find matching jobs from public company career pages and rank them by fit
 - [ ] **Step 3: assisted apply.** Fill application forms automatically, ask you only for missing answers, and you click submit
-- [ ] **Step 4: deploy.** Host on Render with a hosted Postgres database
+- [ ] **Step 4: deploy.** Host on Render with a Neon Postgres database ([deploy guide](docs/deploy.md); `render.yaml` is ready)

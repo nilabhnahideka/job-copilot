@@ -1,0 +1,54 @@
+# Render Blueprint: creates the API and the website on Render's free plan.
+# How to use it, step by step: docs/deploy.md
+#
+# Values marked `sync: false` are secrets or addresses you type into Render's
+# dashboard; they are never stored in this file or in Git.
+
+services:
+  # --- Backend: FastAPI + the LangGraph agent ---------------------------------
+  - type: web
+    name: job-copilot-api
+    runtime: python
+    plan: free
+    region: singapore # closest Render region to India
+    rootDir: backend
+    # The last command makes one tiny AI request and prints WORKING / NOT WORKING
+    # in the build log. `|| true` so a temporary AI quota error can't block a deploy.
+    buildCommand: pip install --upgrade pip && pip install . && (python -m app.llm check || true)
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: ENVIRONMENT
+        value: production # refuses to start if a required secret is missing
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: GEMINI_API_KEY
+        sync: false # your key from https://aistudio.google.com/apikey
+      - key: DATABASE_URL
+        sync: false # your Neon connection string (see docs/deploy.md)
+      - key: JWT_SECRET
+        generateValue: true # Render creates a random secret for login tokens
+      - key: CORS_ORIGINS
+        sync: false # the website's address, e.g. https://job-copilot-web.onrender.com
+
+  # --- Website: Next.js ---------------------------------------------------------
+  - type: web
+    name: job-copilot-web
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: frontend
+    # `output: "standalone"` builds a small server; its static files are copied next to it.
+    buildCommand: npm ci && npm run build && cp -r .next/static .next/standalone/.next/static
+    startCommand: node .next/standalone/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOSTNAME
+        value: 0.0.0.0 # listen on all interfaces so Render can reach the server
+      - key: NEXT_PUBLIC_API_URL
+        sync: false # the API's address, e.g. https://job-copilot-api.onrender.com

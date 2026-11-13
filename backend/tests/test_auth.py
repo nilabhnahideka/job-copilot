@@ -118,3 +118,17 @@ def test_blank_jwt_secret_falls_back_to_dev_secret_and_is_refused_in_production(
     with pytest.raises(RuntimeError) as e:
         prod.validate_for_production()
     assert "JWT_SECRET" in str(e.value) and "API_KEY" not in str(e.value)  # only the secret is wrong
+
+
+def test_cors_origins_are_normalised():
+    from app.config import Settings
+
+    s = Settings(
+        _env_file=None,
+        cors_origins=" https://job-copilot-web.onrender.com/ , job-copilot-web2.onrender.com,http://localhost:3000",
+    )
+    assert s.cors_origin_list == [
+        "https://job-copilot-web.onrender.com",
+        "https://job-copilot-web2.onrender.com",
+        "http://localhost:3000",
+    ]

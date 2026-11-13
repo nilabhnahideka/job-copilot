@@ -9,7 +9,15 @@
 
 import { clearToken, getToken } from "@/lib/auth-token";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** The backend's address. Forgiving about how it was pasted: no trailing "/", and
+ * "https://" is added if missing (e.g. "job-copilot-api.onrender.com"). */
+function normaliseApiUrl(raw: string | undefined): string {
+  const url = (raw ?? "").trim().replace(/\/+$/, "");
+  if (!url) return "http://localhost:8000";
+  return url.includes("://") ? url : `https://${url}`;
+}
+
+export const API_URL = normaliseApiUrl(process.env.NEXT_PUBLIC_API_URL);
 
 // ---------------------------------------------------------------------------
 // Types: agent and applications

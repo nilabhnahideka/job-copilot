@@ -7,6 +7,8 @@ What changed in each step of the project, newest first.
 ### Added
 - Google Gemini as an AI provider, with a free tier, and now the default (`LLM_PROVIDER=gemini`, `GEMINI_API_KEY`). OpenAI still works with `LLM_PROVIDER=openai`.
 - `python -m app.llm check`: makes one tiny AI request and says clearly whether your key works.
+- `render.yaml`: creates the API and website on Render's free plan in one step, and [deploy guide](docs/deploy.md) (Neon + Render + Gemini, all in the browser). The API's build log shows whether the AI key works.
+- Website and API addresses are accepted with or without `https://` and a trailing `/`.
 
 ### Changed
 - CI's eval job uses a `GEMINI_API_KEY` repository secret instead of `OPENAI_API_KEY`.

@@ -52,11 +52,18 @@ Streamlit is faster to build but looks like a demo. A separate API and website l
 
 An analysis takes 20–40 seconds, and showing each step makes the wait understandable. SSE is one-way (server to browser), which is all we need, and it's simpler than WebSockets.
 
-### 9. Free hosting on Render, with data in an external Postgres
+### 9. Free hosting on Render, with the database on Neon
 
-**Chose:** host on Render's free plan, with the database on a separate free Postgres (Neon or Supabase, picked at deploy time). **Considered:** Railway, Fly.io, Vercel + serverless; Render's own Postgres.
+**Chose:** Render's free plan for the API and website (defined in `render.yaml`), Neon's free Postgres for the data, both in Singapore (closest to India). **Considered:** Railway, Fly.io, Vercel; Render's own Postgres; Supabase.
 
-Render's free plan has two catches: services sleep after 15 minutes idle (the first visit then takes about a minute), and local files, including SQLite databases, are wiped on restart. Render's free Postgres expires after 30 days. So the data goes in a separate Postgres. The app supports both: SQLite on your computer (nothing to install), Postgres in production (set `DATABASE_URL`). The tests run against both.
+Render's free plan has two catches: services sleep after 15 minutes idle (the first visit then takes about a minute), and local files, including SQLite databases, are wiped on restart. Render's free Postgres expires after 30 days. So the data lives elsewhere:
+
+- **Neon (chosen):** free with no time limit and no card; the database suspends after 5 idle minutes and wakes in well under a second on the next query.
+- **Supabase (rejected):** its free plan pauses a project after a week without activity, until you resume it by hand in the dashboard. A job-hunt app can easily go a week unused.
+
+The app supports both databases: SQLite on your computer (nothing to install), Postgres in production. The tests run against both. Neon's *direct* connection (pooling off) is used, because the app keeps its own small connection pools.
+
+**`render.yaml` (a Render "Blueprint")** creates both services in one step. Secrets are never in the file: Render asks for them on setup, and generates `JWT_SECRET` itself. The website's API address is built into the website at build time (Next.js `NEXT_PUBLIC_*`), so changing it needs a website redeploy; the API's allowed website address (`CORS_ORIGINS`) is read at startup. Both accept addresses with or without `https://` and a trailing `/`.
 
 ### 10. Our own email + password login, with JWT tokens
 
