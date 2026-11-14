@@ -57,6 +57,26 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+  extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: manifest.json is valid JSON
+        run: node -e 'JSON.parse(require("fs").readFileSync("manifest.json", "utf8"))'
+      - name: JavaScript files have no syntax errors
+        # Copied to .mjs so Node checks them as ES modules (as Chrome loads them);
+        # a plain `node --check file.js` misses errors in files that use `import`.
+        run: |
+          tmp=$(mktemp -d)
+          for f in *.js; do cp "$f" "$tmp/${f%.js}.mjs"; done
+          for f in "$tmp"/*.mjs; do node --check "$f"; done
+
   # Runs the real-AI eval suite, only when a GEMINI_API_KEY repository secret is set
   # (Settings > Secrets and variables > Actions). Uses the free Gemini tier.
   evals:

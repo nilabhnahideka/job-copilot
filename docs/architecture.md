@@ -17,6 +17,7 @@ flowchart LR
 | Part | Folder | What it does |
 |---|---|---|
 | Website | `frontend/` | The pages you use. Holds no data of its own; everything comes from the API. |
+| Chrome plugin | `extension/` | A side panel that reads the job page you're on and sends it to the same API. Same account as the website. |
 | API | `backend/app/main.py`, `backend/app/routers/` | Receives requests from the website, checks who is logged in, runs the agent, saves results. One file per topic: `auth`, `profile`, `resumes`, `applications`. |
 | Accounts | `backend/app/auth.py` | Password hashing and login tokens (see below). |
 | Profile | `backend/app/profile_schema.py` | Every field an application form might ask, and which ones are required before applying. |

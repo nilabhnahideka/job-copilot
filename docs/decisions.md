@@ -104,3 +104,15 @@ OpenAI's API is pay-as-you-go and separate from a ChatGPT subscription, so it co
 **Trade-offs, accepted knowingly:** on the free tier Google may use the content you send (your resume and job posts) to improve its products, and human reviewers may read it; moving to Gemini's paid tier or to OpenAI avoids that. Free-tier rate limits are low and not published (they're shown in Google AI Studio), so the client retries on "quota" errors. Answers differ somewhat between providers; the eval suite (`python -m evals.run_evals`) is the way to compare them.
 
 Thanks to decision 5, the switch was one file (`app/llm.py`) plus settings; no agent code changed.
+
+### 16. A Chrome side panel instead of a website-first workflow
+
+**Chose:** a Chrome extension (Manifest V3) with a side panel, plain JavaScript and no build step, using the same API and account as the website. **Considered:** keeping the website as the only way in; a popup instead of a side panel; React + a bundler for the extension.
+
+You look for jobs on LinkedIn, Naukri and company career pages. Copying each description into a separate website is the friction the plugin removes: open the job, click, see the fit. A side panel stays open beside the page while you read and copy, unlike a popup that closes when you click away. Plain JavaScript keeps it loadable straight from the folder ("Load unpacked"), easy to read, and free of build tooling.
+
+**How it reads a job:** your own text selection first (most reliable), then known description boxes on popular sites, then the largest "description"-like section, then the main content. Sites change their layouts, so the result is always shown in an editable box before analysing.
+
+**Safety:** text from job pages and from the AI is only ever inserted as plain text (`textContent`), never as HTML. The extension only reads a page when you click *Read this job*, and only sends it to your own API. It calls the API directly (no CORS setup) because the API's address is in its `host_permissions`.
+
+**Changes the plan:** job search and automatic form filling move to "later, maybe". The plugin covers the main need with much less risk (no bots acting on job sites, no stored job-site passwords).

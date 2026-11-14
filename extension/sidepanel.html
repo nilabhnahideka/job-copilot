@@ -1,0 +1,110 @@
+<!doctype html>
+<!--
+  The side panel: the window that opens beside a job page when you click the
+  Job Copilot icon. One page with several views; sidepanel.js shows one at a time.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Job Copilot</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <span class="brand">Job Copilot</span>
+      <span id="who" class="muted small"></span>
+      <button id="settings-btn" class="link small" type="button">Settings</button>
+    </header>
+
+    <main>
+      <!-- Shown while checking whether you're logged in -->
+      <section id="view-loading" class="view">
+        <p class="muted">Loading…</p>
+      </section>
+
+      <!-- Log in -->
+      <section id="view-login" class="view" hidden>
+        <h1>Log in</h1>
+        <p class="muted">Use your Job Copilot account. No account yet? Create one on the website first.</p>
+        <form id="login-form" class="stack">
+          <label>Email <input id="login-email" type="email" autocomplete="email" required /></label>
+          <label>Password <input id="login-password" type="password" autocomplete="current-password" required /></label>
+          <p id="login-error" class="error" role="alert" hidden></p>
+          <button class="primary" type="submit">Log in</button>
+        </form>
+        <p id="signup-link" class="small" hidden><a target="_blank" rel="noreferrer">Create an account on the website</a></p>
+      </section>
+
+      <!-- Read the job and analyse it -->
+      <section id="view-job" class="view" hidden>
+        <p id="profile-warning" class="warning" hidden></p>
+        <button id="read-btn" class="primary" type="button">Read this job</button>
+        <p class="muted small">Tip: select the job description on the page first to send exactly that.</p>
+        <p id="read-info" class="muted small" hidden></p>
+        <label class="stack">
+          <span>Job description <span class="muted small">(check it, and edit if needed)</span></span>
+          <textarea id="job-text" rows="12" placeholder="Click “Read this job”, or paste the job description here."></textarea>
+        </label>
+        <p id="job-error" class="error" role="alert" hidden></p>
+        <button id="analyse-btn" class="primary" type="button">Analyse my fit</button>
+      </section>
+
+      <!-- Live progress -->
+      <section id="view-progress" class="view" hidden aria-live="polite">
+        <h1>Analysing…</h1>
+        <p class="muted small">Usually 30–90 seconds. Longer if the server was asleep.</p>
+        <ol id="steps" class="steps"></ol>
+      </section>
+
+      <!-- Results -->
+      <section id="view-result" class="view" hidden>
+        <div class="score-row">
+          <span id="score" class="score"></span>
+          <span>
+            <strong id="verdict"></strong>
+            <span id="role" class="muted small block"></span>
+          </span>
+        </div>
+        <div id="strip" class="strip" role="img"></div>
+
+        <details id="gaps-box" open>
+          <summary>Gaps and how to close them</summary>
+          <ul id="gaps"></ul>
+          <ul id="suggestions" class="muted"></ul>
+          <p id="keywords" class="small"></p>
+        </details>
+
+        <div class="tabs" role="tablist">
+          <button role="tab" data-tab="cover_letter" aria-selected="true">Cover letter</button>
+          <button role="tab" data-tab="bullets" aria-selected="false">Resume points</button>
+          <button role="tab" data-tab="outreach" aria-selected="false">Recruiter message</button>
+        </div>
+        <div id="tab-body" class="doc" role="tabpanel"></div>
+        <div class="row">
+          <button id="copy-btn" class="secondary" type="button">Copy</button>
+          <a id="open-web" class="small" target="_blank" rel="noreferrer" hidden>Review and edit on the website</a>
+        </div>
+        <button id="again-btn" class="link small" type="button">Analyse another job</button>
+      </section>
+
+      <!-- Settings -->
+      <section id="view-settings" class="view" hidden>
+        <h1>Settings</h1>
+        <form id="settings-form" class="stack">
+          <label>API address <input id="set-api" type="text" placeholder="https://job-copilot-api-….onrender.com" /></label>
+          <label>Website address <input id="set-web" type="text" placeholder="https://job-copilot-web-….onrender.com" /></label>
+          <p class="muted small">Copy these from the top of each service's page on Render.</p>
+          <div class="row">
+            <button class="primary" type="submit">Save</button>
+            <button id="settings-cancel" class="secondary" type="button">Back</button>
+          </div>
+        </form>
+        <hr />
+        <button id="logout-btn" class="link" type="button" hidden>Log out</button>
+      </section>
+    </main>
+
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>

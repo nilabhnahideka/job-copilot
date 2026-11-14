@@ -4,7 +4,7 @@ An AI agent that reads a job posting, compares it to your resume, and drafts a t
 
 Built with **LangGraph**, **LangChain**, **Gemini or OpenAI**, **FastAPI**, **Postgres / SQLite** and **Next.js**, with tests, evals, Docker and CI.
 
-> Status: agent ✅ · web app ✅ · accounts & profile ✅ · job search 🚧 · assisted apply 🚧 · deployment 🚧
+> Status: agent ✅ · web app ✅ · accounts & profile ✅ · deployed on Render ✅ · Chrome plugin 🚧 (first version)
 
 ![Application page](docs/screenshot-application.png)
 
@@ -22,6 +22,7 @@ The bar under the score is the score's breakdown: one segment per job requiremen
 |---|---|
 | [Setup guide](docs/setup.md) | Run it on your computer, step by step |
 | [Deploy guide](docs/deploy.md) | Put it online for free (Render + Neon + Gemini), in the browser |
+| [Chrome plugin](extension/README.md) | Install the side panel that analyses the job page you're on |
 | [How it works](docs/architecture.md) | The parts, the agent's steps, how the score is calculated |
 | [Decisions log](docs/decisions.md) | Why each technology and approach was chosen |
 | [Changelog](CHANGELOG.md) | What changed in each step |
@@ -156,16 +157,19 @@ frontend/
   app/            Next.js routes: board, login, signup, profile, new, applications/[id]
   components/     AuthProvider, ProfileView, ApplicationView, RequirementStrip, form fields
   lib/            typed API client + SSE reader, login token storage, word diff
+extension/         Chrome plugin (side panel): plain JavaScript, no build step
 docker-compose.yml
 ```
 
 ## Roadmap
 
-The goal: set up your profile once, then let the app find matching jobs and prepare each application, with you approving before anything is submitted.
+The goal: on any job page, one click tells you how well you fit and writes a tailored cover letter and resume for that job.
 
 - [x] Agent: match, gap analysis, fact-checked resume rewrites, cover letter, recruiter message
-- [x] Web app: resume upload, live progress, review/revise, application board
-- [x] **Step 1: accounts and profile.** Log in once and save your resume, details, job preferences and common form answers
-- [ ] **Step 2: job search.** Find matching jobs from public company career pages and rank them by fit
-- [ ] **Step 3: assisted apply.** Fill application forms automatically, ask you only for missing answers, and you click submit
-- [ ] **Step 4: deploy.** Host on Render with a Neon Postgres database ([deploy guide](docs/deploy.md); `render.yaml` is ready)
+- [x] Web app: live progress, review/revise, application board
+- [x] Accounts and profile: log in once; resume, details, preferences and common form answers saved once
+- [x] Free AI: Google Gemini's free tier (OpenAI optional)
+- [x] Deploy: Render + Neon, one `render.yaml` ([deploy guide](docs/deploy.md))
+- [ ] **Chrome plugin** ([extension/](extension/README.md)): side panel that reads the job page and analyses it. *First version done;* next: review and revise inside the panel
+- [ ] Tailored resume as a downloadable PDF
+- [ ] Later, maybe: finding matching jobs, filling application forms (you approve before submitting)

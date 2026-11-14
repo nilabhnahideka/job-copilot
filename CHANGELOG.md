@@ -5,6 +5,7 @@ What changed in each step of the project, newest first.
 ## Unreleased
 
 ### Added
+- Chrome plugin (`extension/`, first version): a side panel that reads the job description from the page you're on (or your selection), analyses it with live progress, and shows the fit score, requirement bar, gaps, cover letter, resume points and recruiter message with Copy buttons. Log in with your Job Copilot account; API and website addresses are set in its Settings. Install with "Load unpacked" ([guide](extension/README.md)).
 - Google Gemini as an AI provider, with a free tier, and now the default (`LLM_PROVIDER=gemini`, `GEMINI_API_KEY`). OpenAI still works with `LLM_PROVIDER=openai`.
 - `python -m app.llm check`: makes one tiny AI request and says clearly whether your key works.
 - `render.yaml`: creates the API and website on Render's free plan in one step, and [deploy guide](docs/deploy.md) (Neon + Render + Gemini, all in the browser). The API's build log shows whether the AI key works.
